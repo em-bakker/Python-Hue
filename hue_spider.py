@@ -59,13 +59,13 @@ cur.executescript('''
     (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, schedule_id INTEGER UNIQUE);
 
     CREATE TABLE IF NOT EXISTS scheduledata \
-    (id INTEGER PRIMARY KEY AUTOINCREMENT, schedule_id INTEGER, key TEXT, value TEST, UNIQUE(schedule_id, key, value));
+    (id INTEGER PRIMARY KEY AUTOINCREMENT, schedule_id INTEGER, key TEXT, value TEST, UNIQUE(schedule_id, key));
     
     CREATE TABLE IF NOT EXISTS scenes \
     (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, scene_id INTEGER UNIQUE);
 
     CREATE TABLE IF NOT EXISTS scenedata \
-    (id INTEGER PRIMARY KEY AUTOINCREMENT, scene_id INTEGER, key TEXT, value TEST, UNIQUE(scene_id, key, value));
+    (id INTEGER PRIMARY KEY AUTOINCREMENT, scene_id INTEGER, key TEXT, value TEST, UNIQUE(scene_id, key));
 
     ''')
 
@@ -231,32 +231,4 @@ for scene, values in scenes.items():
 conn.commit()
 print('scenes retrieved.')
 
-
 conn.close()
-
-
-#ignore testcode after this....
-quit()
-
-#____________
-
-## some test code; playing with the api.....
-for a in range(12):
-    lamp = a % 4
-    lamp += 1
-
-    # Turn lamp 1 on/off
-    b.set_light(1,'on', lamp == 1)
-    # Turn lamp 2 on/off
-    b.set_light(2,'on', lamp == 2 )
-    # Turn lamp 3 on/off
-    b.set_light(3,'on', lamp == 3)
-    # Turn lamp 4 on/off
-    b.set_light(4,'on', lamp == 4)
-    time.sleep(0.2)
-
-# You can also control multiple lamps by sending a list as lamp_id
-b.set_light( [1,2,3], 'on', False)
-
-# Get the name of a lamp
-b.get_light(1, 'name')
