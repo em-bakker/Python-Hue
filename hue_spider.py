@@ -18,12 +18,19 @@ cur = conn.cursor()
 #Check for paramater "refresh". If set, start with fresh tables
 if len(sys.argv) > 1:
     if sys.argv[1] == 'refresh':
-        cur.execute('DROP TABLE IF EXISTS lights')
-        cur.execute('DROP TABLE IF EXISTS sensors')
-        cur.execute('DROP TABLE IF EXISTS sensorstate')
-        cur.execute('DROP TABLE IF EXISTS sensorconfig')
-        cur.execute('DROP TABLE IF EXISTS group')
-        cur.execute('DROP TABLE IF EXISTS groupmembers')
+        cur.executescript('''
+            DROP TABLE IF EXISTS lights;
+            DROP TABLE IF EXISTS sensors;
+            DROP TABLE IF EXISTS sensorstate;
+            DROP TABLE IF EXISTS sensorconfig;
+            DROP TABLE IF EXISTS groups;
+            DROP TABLE IF EXISTS groupmembers;
+            DROP TABLE IF EXISTS schedules;
+            DROP TABLE IF EXISTS scheduledata;
+            DROP TABLE IF EXISTS scenes
+            DROP TABLE IF EXISTS scenedata
+
+            ''')
 
 #Create tables
 cur.executescript('''
@@ -47,6 +54,18 @@ cur.executescript('''
 
     CREATE TABLE IF NOT EXISTS groupmembers \
     (group_id INTEGER, light_id INTEGER, UNIQUE(group_id, light_id));
+
+    CREATE TABLE IF NOT EXISTS schedules \
+    (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, schedule_id INTEGER UNIQUE);
+
+    CREATE TABLE IF NOT EXISTS scheduledata \
+    (id INTEGER PRIMARY KEY AUTOINCREMENT, schedule_id INTEGER, key TEXT, value TEST, UNIQUE(schedule_id, key, value));
+    
+    CREATE TABLE IF NOT EXISTS scenes \
+    (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, scene_id INTEGER UNIQUE);
+
+    CREATE TABLE IF NOT EXISTS scenedata \
+    (id INTEGER PRIMARY KEY AUTOINCREMENT, scene_id INTEGER, key TEXT, value TEST, UNIQUE(scene_id, key, value));
 
     ''')
 
@@ -150,7 +169,7 @@ conn.commit()
 print('Sensors retrieved.')
 
 #Retrieve Groups
-print('Retrieving groups')
+print('Retrieving groups...')
 groupcount = len(b.groups)
 if groupcount > 0:
     for group in range(groupcount):
@@ -166,14 +185,54 @@ if groupcount > 0:
             cur.execute('INSERT OR IGNORE INTO groupmembers (group_id, light_id) VALUES (?, ?)', (group_id, light) )
 
     conn.commit()
-print('Groups retrieved')
+print('Groups retrieved.')
+
+#Retrieve schedules
+print('Retrieving scedules...')
+
+schedulelist = b.get_schedule()
+for scheduleitem in schedulelist:
+    schedule=b.get_schedule(scheduleitem)
+        
+    sname = schedule.get('name')
+    cur.execute('INSERT OR IGNORE INTO schedules (schedule_id, name) VALUES (?, ?)', (scheduleitem, sname))
+    
+    cur.execute('SELECT id FROM schedules WHERE schedule_id = ?', (scheduleitem, ))
+    row = cur.fetchone()
+    schedule_id = row[0]
+    
+    for k, v in schedule.items():
+        if k == 'name': 
+            continue
+        cur.execute('INSERT OR IGNORE INTO scheduledata (schedule_id, key, value) VALUES (?, ?, ?)', (schedule_id, k, str(v)))
+        cur.execute('UPDATE scheduledata SET value = ? WHERE id = ? AND key = ?', (str(v), schedule_id, k))
+
+conn.commit()
+print('Schedules retrieved.')
 
 #Retrieve scenes
+print('Retrieving scenes...')
 
+scenes = b.get_scene()
+sceneitem = 0
+for scene, values in scenes.items():
+    sname = scene
+    sceneitem += 1
+    
+    cur.execute('INSERT OR IGNORE INTO scenes (scene_id, name) VALUES (?, ?)', (sceneitem, sname))
+    cur.execute('SELECT id FROM scenes WHERE scene_id = ?', (sceneitem, ))
+    row = cur.fetchone()
+    scene_id = row[0]
+
+    for k, v in values.items():
+        cur.execute('INSERT OR IGNORE INTO scenedata (scene_id, key, value) VALUES (?, ?, ?)', (scene_id, k, str(v)))
+        cur.execute('UPDATE scenedata SET value = ? WHERE id = ? AND key = ?', (str(v), scene_id, k))
+    
+conn.commit()
+print('scenes retrieved.')
 
 
 conn.close()
-
 
 
 #ignore testcode after this....
