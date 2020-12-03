@@ -1,12 +1,11 @@
 import sys
 import sqlite3
 from phue import Bridge
-import time
 
-# Get credentials for my HueBridge
-# For security reasons not in this project
-# functions in hidden.py just returns IP-adress and the API-user key
-# see Hue Developpers site for info on generating a API-user key
+#Get credentials for my HueBridge
+#For security reasons not in this project
+#Functions in hidden.py just returns IP-adress and the API-user key
+#See Hue Developpers site for info on generating a API-user key
 import hidden
 myIP = hidden.MyBridgeIP()
 myUserID = hidden.MyBridgeUserID()
@@ -15,9 +14,10 @@ myUserID = hidden.MyBridgeUserID()
 conn = sqlite3.connect('.\database\HueSystem.sqlite')
 cur = conn.cursor()
 
-#Check for paramater "refresh". If set, start with fresh tables
+#Check for paramater "refresh". If set, delete existing data
 if len(sys.argv) > 1:
     if sys.argv[1] == 'refresh':
+        print('Erasing data...')
         cur.executescript('''
             DROP TABLE IF EXISTS lights;
             DROP TABLE IF EXISTS sensors;
@@ -27,10 +27,10 @@ if len(sys.argv) > 1:
             DROP TABLE IF EXISTS groupmembers;
             DROP TABLE IF EXISTS schedules;
             DROP TABLE IF EXISTS scheduledata;
-            DROP TABLE IF EXISTS scenes
-            DROP TABLE IF EXISTS scenedata
+            DROP TABLE IF EXISTS scenes;
+            DROP TABLE IF EXISTS scenedata;
 
-            ''')
+        ''')
 
 #Create tables
 cur.executescript('''
@@ -67,7 +67,7 @@ cur.executescript('''
     CREATE TABLE IF NOT EXISTS scenedata \
     (id INTEGER PRIMARY KEY AUTOINCREMENT, scene_id INTEGER, key TEXT, value TEST, UNIQUE(scene_id, key));
 
-    ''')
+''')
 
 #Connect to the Hue Bridge, using "hidden" credentials
 b = Bridge(myIP, myUserID)
@@ -112,7 +112,6 @@ for light in lights:
     except:
         leffect = ''
 
-    #Update database
     cur.execute('INSERT OR IGNORE INTO lights (light_id, name, ltype, reachable, onstate, alert, brightness, colormode, colortemp, hue, sat, xyvalue, effect) \
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', \
         (lid, lname, ltype, lreachable, lon, lalert, lbrightness, lcolormode, lcolortemp, lhue, lsaturation, str(lxy), leffect) )
@@ -184,7 +183,7 @@ if groupcount > 0:
         for light in glights:
             cur.execute('INSERT OR IGNORE INTO groupmembers (group_id, light_id) VALUES (?, ?)', (group_id, light) )
 
-    conn.commit()
+conn.commit()
 print('Groups retrieved.')
 
 #Retrieve schedules
@@ -232,3 +231,4 @@ conn.commit()
 print('scenes retrieved.')
 
 conn.close()
+print('All done.')
