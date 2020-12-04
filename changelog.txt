@@ -1,0 +1,8 @@
+03-12-2020:
+
+Bugfix
+Added code to get the path from wich te module runs. 
+Fixed error on openening database when this path is not the current working directory.
+
+Improved check for argument '--refresh'. Argument is not case sensitive.
+When started with other arguments, a message is printed; listing arguments ommitted.

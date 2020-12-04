@@ -1,22 +1,28 @@
+#!/usr/bin/env python3
+
 import sys
+import os
+import hidden
 import sqlite3
 from phue import Bridge
 
 #Get credentials for my HueBridge
-#For security reasons not in this project
-#Functions in hidden.py just returns IP-adress and the API-user key
+#Functions just returns IP-adress and the API-user key, which I don't want to reveal in this code
 #See Hue Developpers site for info on generating a API-user key
-import hidden
 myIP = hidden.MyBridgeIP()
 myUserID = hidden.MyBridgeUserID()
 
-#Connect to database
-conn = sqlite3.connect('.\database\HueSystem.sqlite')
+#Connect to database (located in .\database directory)
+dbpath = __file__
+pos=dbpath.rfind('\\')
+dbpath=dbpath[:pos] + r'\database\HueSystem.sqlite'
+
+conn = sqlite3.connect(dbpath)
 cur = conn.cursor()
 
-#Check for paramater "refresh". If set, delete existing data
+#Check for paramater "--refresh". If set, delete existing data
 if len(sys.argv) > 1:
-    if sys.argv[1] == 'refresh':
+    if sys.argv[1].lower() == '--refresh':
         print('Erasing data...')
         cur.executescript('''
             DROP TABLE IF EXISTS lights;
@@ -29,8 +35,9 @@ if len(sys.argv) > 1:
             DROP TABLE IF EXISTS scheduledata;
             DROP TABLE IF EXISTS scenes;
             DROP TABLE IF EXISTS scenedata;
-
         ''')
+    else:
+       print('Arguments',  sys.argv[1:] , 'ignored.')
 
 #Create tables
 cur.executescript('''
@@ -66,10 +73,9 @@ cur.executescript('''
 
     CREATE TABLE IF NOT EXISTS scenedata \
     (id INTEGER PRIMARY KEY AUTOINCREMENT, scene_id INTEGER, key TEXT, value TEST, UNIQUE(scene_id, key));
-
 ''')
 
-#Connect to the Hue Bridge, using "hidden" credentials
+#Connect to the Hue Bridge
 b = Bridge(myIP, myUserID)
 
 #Retreve Lights
