@@ -66,13 +66,13 @@ cur.executescript('''
     (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, schedule_id INTEGER UNIQUE);
 
     CREATE TABLE IF NOT EXISTS scheduledata \
-    (id INTEGER PRIMARY KEY AUTOINCREMENT, schedule_id INTEGER, key TEXT, value TEST, UNIQUE(schedule_id, key));
+    (id INTEGER PRIMARY KEY AUTOINCREMENT, schedule_id INTEGER, key TEXT, value TEXT, UNIQUE(schedule_id, key));
     
     CREATE TABLE IF NOT EXISTS scenes \
     (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, scene_id INTEGER UNIQUE);
 
     CREATE TABLE IF NOT EXISTS scenedata \
-    (id INTEGER PRIMARY KEY AUTOINCREMENT, scene_id INTEGER, key TEXT, value TEST, UNIQUE(scene_id, key));
+    (id INTEGER PRIMARY KEY AUTOINCREMENT, scene_id INTEGER, key TEXT, value TEXT, UNIQUE(scene_id, key));
 ''')
 
 #Connect to the Hue Bridge
