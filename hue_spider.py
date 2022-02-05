@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+#from asyncio.windows_events import NULL
 import sys
 import os
 import hidden
@@ -14,9 +15,8 @@ myUserID = hidden.MyBridgeUserID()
 
 #Connect to database (located in .\database directory)
 dbpath = __file__
-pos=dbpath.rfind('\\')
-dbpath=dbpath[:pos] + r'\database\HueSystem.sqlite'
-
+pos=dbpath.rfind('/')
+dbpath=dbpath[:pos] + r'/database/HueSystem.sqlite'
 conn = sqlite3.connect(dbpath)
 cur = conn.cursor()
 
@@ -90,9 +90,12 @@ for light in lights:
     lreachable = light.reachable
     lon = light.on
     lalert = light.alert
-    lbrightness = light.brightness
-
+    
     #Type depending properties
+    try:
+        lbrightness = light.brightness
+    except:
+        lbrightness = 0
     try:
         lcolormode = light.colormode
     except:
